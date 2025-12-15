@@ -26,7 +26,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Exponemos el puerto del auth-service
-EXPOSE 8081
+EXPOSE 8080
 
 # Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]

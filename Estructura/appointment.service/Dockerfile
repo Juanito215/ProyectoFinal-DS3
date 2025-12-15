@@ -26,7 +26,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Exponemos el puerto del appointment-service
-EXPOSE 8083
+EXPOSE 8080
 
 # Ejecutamos la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]

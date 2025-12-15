@@ -1,0 +1,65 @@
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: barberbook-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: joseph123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    depends_on:
+      - auth-service
+      - barber-service
+      - appointment-service
+    ports:
+      - "8080:8080"
+  
+  auth-service:
+    build: ./auth.service
+    container_name: auth-service
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: joseph123
+
+  barber-service:
+    build: ./barber.service
+    container_name: barber-service
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/barber_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: joseph123
+
+  appointment-service:
+    build: ./appointment.service
+    container_name: appointment-service
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/appointment_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: joseph123
+
+volumes:
+  postgres_data:

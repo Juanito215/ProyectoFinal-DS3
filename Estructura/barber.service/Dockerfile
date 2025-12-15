@@ -26,7 +26,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Puerto del barber-service
-EXPOSE 8082
+EXPOSE 8080
 
 # Ejecutar app
 ENTRYPOINT ["java", "-jar", "app.jar"]

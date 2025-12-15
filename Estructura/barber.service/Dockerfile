@@ -1,14 +1,32 @@
-# Imagen base con Java 17
-FROM eclipse-temurin:17-jdk-alpine
+# ===============================
+# ETAPA 1: BUILD
+# ===============================
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copiamos el jar generado por Maven
-COPY target/barber-service-0.0.1-SNAPSHOT.jar app.jar
+# Copiamos pom.xml y descargamos dependencias
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-# Exponemos el puerto del microservicio
-EXPOSE 8080
+# Copiamos el código fuente
+COPY src ./src
 
-# Comando para ejecutar la app
-ENTRYPOINT ["java","-jar","app.jar"]
+# Construimos el JAR
+RUN mvn clean package -DskipTests
+
+# ===============================
+# ETAPA 2: RUNTIME
+# ===============================
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+# Copiamos el JAR generado
+COPY --from=build /app/target/*.jar app.jar
+
+# Puerto del barber-service
+EXPOSE 8082
+
+# Ejecutar app
+ENTRYPOINT ["java", "-jar", "app.jar"]

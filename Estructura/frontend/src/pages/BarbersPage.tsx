@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { barberService } from '../services';
+import { appointmentService } from '../services/appointmentService';
 import { Star, MapPin, Phone } from 'lucide-react';
 
 interface Barber {
-  id: string;
+  id: number;
   name: string;
   specialties: string[];
   rating: number;
@@ -17,11 +18,43 @@ export const BarbersPage: React.FC = () => {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleCreateAppointment = async (barberId: number) => {
+    try {
+      const appointment = {
+        date: '2025-01-20',     // luego será dinámico
+        time: '14:00',
+        status: 'PENDING',
+        userId: 1,             // luego vendrá del auth
+        barberId: barberId,
+        serviceId: 1
+      };
+
+      await appointmentService.create(appointment);
+
+      alert('Cita agendada correctamente');
+    } catch (error) {
+      console.error('Error creando cita:', error);
+      alert('Error al agendar la cita');
+    }
+  };
+
   useEffect(() => {
     const fetchBarbers = async () => {
       try {
         const response = await barberService.getAllBarbers();
-        setBarbers(response.data);
+
+        const mappedBarbers: Barber[] = response.data.map((b: any) => ({
+          id: b.id,
+          name: b.nombre,
+          specialties: b.especialidad ? [b.especialidad] : [],
+          rating: 5,          // temporal
+          reviews: 0,         // temporal
+          location: b.barberia?.nombre,
+          phone: b.telefono,
+          image: null
+        }));
+
+        setBarbers(mappedBarbers);
       } catch (error) {
         console.error('Error fetching barbers:', error);
       } finally {
@@ -43,7 +76,9 @@ export const BarbersPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-primary mb-2">Nuestros Barberos</h1>
-      <p className="text-gray-600 mb-12">Elige tu barbero favorito y agenda una cita</p>
+      <p className="text-gray-600 mb-12">
+        Elige tu barbero favorito y agenda una cita
+      </p>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {barbers.map((barber) => (
@@ -58,6 +93,7 @@ export const BarbersPage: React.FC = () => {
                 className="w-full h-48 object-cover"
               />
             )}
+
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 {barber.name}
@@ -69,7 +105,7 @@ export const BarbersPage: React.FC = () => {
                     key={i}
                     size={16}
                     className={
-                      i < Math.floor(barber.rating)
+                      i < barber.rating
                         ? 'fill-yellow-400 text-yellow-400'
                         : 'text-gray-300'
                     }
@@ -80,23 +116,23 @@ export const BarbersPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="space-y-2 mb-4">
-                {barber.specialties && barber.specialties.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Especialidades:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {barber.specialties.map((specialty, i) => (
-                        <span
-                          key={i}
-                          className="inline-block px-2 py-1 bg-primary bg-opacity-10 text-primary text-xs rounded"
-                        >
-                          {specialty}
-                        </span>
-                      ))}
-                    </div>
+              {barber.specialties.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-gray-700">
+                    Especialidades:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {barber.specialties.map((specialty, i) => (
+                      <span
+                        key={i}
+                        className="inline-block px-2 py-1 bg-primary bg-opacity-10 text-primary text-xs rounded"
+                      >
+                        {specialty}
+                      </span>
+                    ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {barber.location && (
                 <div className="flex items-center space-x-2 text-gray-600 text-sm mb-2">
@@ -112,7 +148,10 @@ export const BarbersPage: React.FC = () => {
                 </div>
               )}
 
-              <button className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-accent transition">
+              <button
+                onClick={() => handleCreateAppointment(barber.id)}
+                className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-accent transition"
+              >
                 Agendar Cita
               </button>
             </div>

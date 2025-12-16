@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { authService } from '../services';
 import { AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/auth.Service';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -19,11 +20,15 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await authService.login(email, password);
+
       const { user, token } = response.data;
+
       login(user, token);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      setError(
+        err.response?.data?.message || 'Credenciales inválidas'
+      );
     } finally {
       setLoading(false);
     }
@@ -32,12 +37,17 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-light flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8 border-2 border-primary">
+
         <h1 className="text-3xl font-bold text-center text-primary mb-2">
           BarberBook
         </h1>
-        <p className="text-center text-gray-600 mb-8">Inicia sesión en tu cuenta</p>
+
+        <p className="text-center text-gray-600 mb-8">
+          Inicia sesión en tu cuenta
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
           {error && (
             <div className="flex items-center space-x-2 p-4 bg-red-100 text-red-700 rounded">
               <AlertCircle size={20} />
@@ -82,8 +92,11 @@ export const LoginPage: React.FC = () => {
 
         <p className="text-center text-gray-600 mt-6">
           ¿No tienes cuenta?{' '}
-          <a href="/register" className="text-secondary font-medium hover:underline">
-            Registrate aquí
+          <a
+            href="/register"
+            className="text-secondary font-medium hover:underline"
+          >
+            Regístrate aquí
           </a>
         </p>
       </div>
